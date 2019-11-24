@@ -82,6 +82,18 @@
        </spacer>
       </item>
       <item>
+       <widget class="QLabel" name="weatherLabel">
+        <property name="font">
+         <font>
+          <pointsize>28</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>[WEATHER ICON]</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QLabel" name="timeLabel">
         <property name="font">
          <font>

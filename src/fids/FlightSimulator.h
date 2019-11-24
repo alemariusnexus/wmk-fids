@@ -45,6 +45,7 @@ public:
 	QTime roundExpectedDepartureTime(const QTime& time, const QTime& lastRoundedTime) const;
 
 	void enterMode(Mode mode);
+	void enterModeDelayed(Mode mode, int delay);
 
 	void cue(const QString& cue);
 
@@ -53,14 +54,20 @@ private:
 
 	void initFlight(Flight* flight);
 
-	void scheduleEvent(Event* evt);
+	void scheduleEvent(Event* evt, bool freshStart = false);
+	void triggerEvent(Event* evt);
 
+	void clearPlan();
 	void reloadPlan();
 
 	//void testTime(const QString& stime, const QString& slastRoundedTime);
 
 private slots:
 	void flightAdded(Flight* flight);
+
+	void simulatedDateTimeChanged(const QDateTime& now);
+
+	void delayedModeChangeTriggered();
 
 	void eventOccurred();
 
@@ -72,9 +79,15 @@ private:
 	FlightPlan plan;
 
 	Mode mode;
+	Mode delayedMode;
+
+	int cancelNumLeft;
 
 	QTimer statusUpdateTimer;
 	QTimer cancelUpdateTimer;
+	QTimer delayedModeChangeTimer;
+
+	int64_t beginBoardingTimeDeviation;
 
 	int64_t boardingTimeAverage;
 	int64_t boardingTimeDeviation;

@@ -1,18 +1,72 @@
 {
+    "simulationTimeStart" : "10:17",
+    "simulationTimePart2" : "14:36",
+    "simulationTimeScale" : 1.0,
+    /*"simulationTimePresets" : [
+        { "name" : "Part 1", "time" : "14:00" },
+        { "name" : "Part 2", "time" : "16:35" }
+    ],*/
     "curTimeFormat" : "HH:mm",
     "fidsTimeFormat" : "HH:mm",
+    "expectedDepartureDisplayThreshold" : 300,
+    "maxDisplayedFlights" : -1,
+    "blinkInterval" : 1000,
+    "blinkTimeCancelled" : 15000,
+    "blinkTimeBoarding" : 15000,
+    "blinkTimeGateClosing" : 15000,
+    "weatherDefault" : "rainy",
+    "weatherPart2" : "clear",
+    "weather" : [
+        { "id" : "clear", "icon" : "icons/weather-clear.png", "iconScale" : 80 },
+        { "id" : "rainy", "icon" : "icons/weather-rainy.png", "iconScale" : 80 }
+    ],
+    
+    "simulation" : {
+        "beginBoardingTimeDeviation" : 30,
+        "boardingTimeAverage" : 600,
+        "boardingTimeDeviation" : 180,
+        "boardingTimeDeviation" : 0,
+        "gateCloseTime" : 120,
+        "expectedDepartureTimeModulo" : 300,
+        "expectedDepartureTimeHysteresis" : 30,
+        "departLingerTime" : 180,
+        "delayMax" : 7200,
+        "cancelInterval" : 3000,
+        "cancelTargetNum" : 15,
+        "cancelNumMin" : 10,
+        "cancelNumMax" : 10,
+        //"loadCutoffTime" : 300,
+        //"loadCutoffTime" : 60,
+        "loadCutoffTime" : 600,
+        
+        "events" : [
+            {
+                "intervalMin" : 600,
+                "intervalMax" : 1800,
+                "freshTriggersMin" : 2,
+                "freshTriggersMax" : 4,
+                "type" : "delay",
+                //"status" : [ "Scheduled", "Boarding", "GateClosing", "Departed" ],
+                "status" : [ "Scheduled" ],
+                "farAffectedTime" : 3600,
+                "delayMin" : 300,
+                "delayMax" : 1800
+            }
+        ]
+    },
+    
+    
     "remarkBoardingColor" : "#00ff00",
     "remarkGateClosingColor" : "#ff6000",
     "remarkDepartedColor" : "#ffffff",
     "remarkCancelledColor" : "#ff0000",
-    "expectedDepartureDisplayThreshold" : 300,
-    "maxDisplayedFlights" : -1,
     "globalCSS" : "background-color: #010d35; color: #ffffff; font-family: \"Monospace\";",
     "titleText" : "ABFLUG / DEPARTURES",
     "titleCSS" : "",
     "titleLabelCSS" : "margin-left: 25px; font-size: 44pt;",
     "titleTimeCSS" : "font-size: 60pt; font-weight: bold;",
     "titleIconScale" : 128,
+    "weatherIconCSS" : "margin-right: 100px;",
     "headerTitles" : [
         "Planmäßig\nScheduled",
         "Voraussichtlich\nEstimated",
@@ -27,37 +81,15 @@
     "tablePaddingLeft" : 10,
     "tablePaddingRight" : 40,
     "rowSchemes" : [
-        { "backgroundColor" : "#010d35", "textColor" : "#ffffff", "font" : { "size" : 36 } },
-        { "backgroundColor" : "#0072ef", "textColor" : "#ffffff", "font" : { "size" : 36 } }
+        { "backgroundColor" : "#010d35", "textColor" : "#ffffff", "font" : { "size" : 32 } },
+        { "backgroundColor" : "#0072ef", "textColor" : "#ffffff", "font" : { "size" : 32 } }
     ],
     "columnSizes" : [
         //  SHEDTIME    EXPTIME     DEST        FLIGHTNO    GATE        REMARKS
             1,          1,          2,          1,          1,          2
     ],
     
-    "simulation" : {
-        "boardingTimeAverage" : 600,
-        "boardingTimeDeviation" : 180,
-        "gateCloseTime" : 120,
-        "expectedDepartureTimeModulo" : 300,
-        "expectedDepartureTimeHysteresis" : 30,
-        "departLingerTime" : 300,
-        "delayMax" : 7200,
-        "cancelInterval" : 200,
-        "loadCutoffTime" : 300,
-        
-        "events" : [
-            {
-                "intervalMin" : 30,
-                "intervalMax" : 60,
-                "type" : "delay",
-                //"status" : [ "Scheduled", "Boarding", "GateClosing", "Departed" ],
-                "status" : [ "Scheduled" ],
-                "delayMin" : 600,
-                "delayMax" : 1800
-            }
-        ]
-    },
+    
     
     "flights" : [
         [ "04:45", "Moscow", "RU310", "C18" ],

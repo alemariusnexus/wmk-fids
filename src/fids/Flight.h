@@ -38,6 +38,7 @@ public:
 	QString getFlightNumber() const { return flightNo; }
 	QString getGate() const { return gate; }
 	QString getRemark() const;
+	int getRemarkBlinkTime() const;
 	QColor getRemarkColor() const;
 
 	void setBeginBoardingTime(const QTime& time);
@@ -64,6 +65,8 @@ private:
 			const QString& flightNo, const QString& gate);
 	Flight(FlightPlan* plan, const rapidjson::Value& jsonData);
 
+	void init();
+
 	void updateExpectedDepartureTime();
 
 private:
@@ -80,6 +83,11 @@ private:
 	QTime gateCloseTime;
 	QTime depTime;
 	QTime expDepTime;
+
+	int cancelledBlinkTime;
+	int boardingBlinkTime;
+	int gateClosingBlinkTime;
+	int departedBlinkTime;
 
 	//QString remark;
 	//QColor remarkColor;

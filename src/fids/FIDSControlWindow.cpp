@@ -62,8 +62,39 @@ void FIDSControlWindow::init()
 	sys.loadConfig();
 
 
+	if (sys.hasOption("/simulationTimeStart")) {
+		QTime simNow = QTime::fromString(sys.requireStringOption("/simulationTimeStart"));
+		sys.setSimulatedTime(simNow);
+	}
+	if (sys.hasOption("/simulationTimeScale")) {
+		double scale = sys.requireDoubleOption("/simulationTimeScale");
+		sys.setSimulatedTimeScale(scale);
+	}
+
 
 	setWindowTitle("Control - " + qApp->applicationName());
+
+
+	const rapidjson::Value* jsimTimePresets = sys.getArrayOption("/simulationTimePresets");
+	if (jsimTimePresets  &&  jsimTimePresets->Size() > 0) {
+		for (size_t i = 0 ; i < jsimTimePresets->Size() ; i++) {
+			const rapidjson::Value& jpreset = (*jsimTimePresets)[i];
+			QString name(jpreset["name"].GetString());
+			QTime time = QTime::fromString(jpreset["time"].GetString());
+
+			if (i != 0) {
+				ui.timePresetsBox->layout()->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding));
+			}
+
+			QPushButton* cueButton = new QPushButton(ui.timePresetsBox);
+			cueButton->setText(QString("Time \"%1 (%2)\"").arg(name).arg(time.toString("HH:mm")));
+			cueButton->setObjectName(QString("cueButtonSetTimePreset%1").arg(i));
+			ui.timePresetsBox->layout()->addWidget(cueButton);
+		}
+	} else {
+		ui.timePresetsBox->hide();
+	}
+
 
 	QSettings settings;
 
@@ -91,8 +122,23 @@ void FIDSControlWindow::init()
 
 void FIDSControlWindow::cueTriggered(const QString& cue)
 {
-	FlightSimulator::getInstance().cue(cue);
+	System& sys = System::getInstance();
 
+	if (cue.startsWith("SetTimePreset")) {
+		int presetIdx = cue.right(cue.length() - strlen("SetTimePreset")).toInt();
+
+		const rapidjson::Value* jsimTimePresets = sys.getArrayOption("/simulationTimePresets");
+		const rapidjson::Value& jpreset = (*jsimTimePresets)[presetIdx];
+
+		QString name(jpreset["name"].GetString());
+		QTime time = QTime::fromString(jpreset["time"].GetString());
+
+		printf("Setting simulated time to %s\n", time.toString("HH:mm").toUtf8().constData());
+
+		sys.setSimulatedTime(time);
+	}
+
+	FlightSimulator::getInstance().cue(cue);
 	if (fidsWidget) {
 		fidsWidget->cue(cue);
 	}

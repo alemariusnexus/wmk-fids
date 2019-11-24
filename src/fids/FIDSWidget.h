@@ -4,6 +4,7 @@
 #include <QWidget>
 #include <QList>
 #include <QTimer>
+#include <QMovie>
 #include <ui_FIDSWidget.h>
 #include "FlightPlan.h"
 #include "FIDSTableModel.h"
@@ -18,6 +19,8 @@ public:
 	virtual ~FIDSWidget();
 
 	void cue(const QString& cue);
+
+	void setWeather(const QString& weather);
 
 protected:
 	virtual void keyReleaseEvent(QKeyEvent* evt);
@@ -41,6 +44,8 @@ private:
 	FIDSTableModel* fidsModel;
 	QList<float> columnSizes;
 	QString curTimeFormat;
+	QString curWeather;
+	QMovie* curWeatherMovie;
 };
 
 #endif /* FIDS_FIDSWIDGET_H_ */

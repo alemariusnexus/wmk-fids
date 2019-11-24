@@ -4,11 +4,12 @@
 #include <QKeyEvent>
 #include <QTimer>
 #include <QSettings>
+#include <QMovie>
 
 
 
 FIDSWidget::FIDSWidget(QWidget* parent)
-		: QWidget(parent)
+		: QWidget(parent), curWeatherMovie(nullptr)
 {
 	ui.setupUi(this);
 
@@ -87,6 +88,8 @@ void FIDSWidget::init()
 		titleIcon = titleIcon.scaled(scale, scale, Qt::KeepAspectRatio, Qt::SmoothTransformation);
 	}
 
+	//QPixmap weatherIcon(File(sys.getDataDirectory(), "icons/weather.gif").toString());
+
 	ui.titleWidget->setStyleSheet(sys.getStringOption("/titleCSS", ""));
 
 	ui.titleLabel->setText(sys.requireStringOption("/titleText"));
@@ -95,6 +98,11 @@ void FIDSWidget::init()
 	ui.titleIcon->setPixmap(titleIcon);
 	ui.titleIcon->setStyleSheet(sys.getStringOption("/titleIconCSS", ""));
 	//ui.titleIcon->setStyleSheet(sys.getStringOption("/titleCSS", ""));
+
+	ui.weatherLabel->setText("");
+	ui.weatherLabel->setStyleSheet(sys.getStringOption("/weatherIconCSS", ""));
+
+	setWeather(sys.requireStringOption("/weatherDefault"));
 
 	ui.timeLabel->setStyleSheet(sys.getStringOption("/titleTimeCSS", ""));
 	//ui.timeLabel->setStyleSheet(sys.getStringOption("/titleCSS", ""));
@@ -117,17 +125,50 @@ void FIDSWidget::init()
 
 void FIDSWidget::cue(const QString& cue)
 {
-	if (cue == "Test1") {
-		/*for (size_t i = 0 ; i < plan->size() ; i++) {
-			if (i%2 == 1) {
-				Flight* flight = (*plan)[i];
-				flight->setRemark("CANCELLED");
-				flight->setRemarkColor(QColor("#d92f49"));
-				plan->notifyFlightUpdated(flight);
-			}
-		}*/
-		printf("Rows: %d\n", fidsModel->rowCount(QModelIndex()));
+	System& sys = System::getInstance();
+
+	if (cue == "EnterModePart1") {
+		setWeather(sys.requireStringOption("/weatherDefault"));
+	} if (cue == "EnterModePart2") {
+		setWeather(sys.requireStringOption("/weatherPart2"));
 	}
+}
+
+
+void FIDSWidget::setWeather(const QString& weather)
+{
+	System& sys = System::getInstance();
+
+	QMovie* oldMovie = nullptr;
+	if (curWeatherMovie) {
+		oldMovie = curWeatherMovie;
+	}
+
+	const rapidjson::Value& jweather = sys.requireArrayOption("/weather");
+	for (size_t i = 0 ; i < jweather.Size() ; i++) {
+		const rapidjson::Value& jw = jweather[i];
+		QString wid(jw["id"].GetString());
+
+		if (wid == weather) {
+			QMovie* movie = new QMovie(File(sys.getDataDirectory(), QString(jw["icon"].GetString())).toString());
+
+			if (jw.HasMember("iconScale")) {
+				QSize scale;
+				if (jw["iconScale"].IsArray()) {
+					scale = QSize(jw["iconScale"][0].GetInt(), jw["iconScale"][1].GetInt());
+				} else {
+					scale = QSize(jw["iconScale"].GetInt(), jw["iconScale"].GetInt());
+				}
+				movie->setScaledSize(scale);
+			}
+
+			ui.weatherLabel->setMovie(movie);
+			curWeatherMovie = movie;
+			movie->start();
+		}
+	}
+
+	delete oldMovie;
 }
 
 
@@ -156,7 +197,7 @@ void FIDSWidget::autoResizeTable()
 
 void FIDSWidget::tick()
 {
-	QTime time = QTime::currentTime();
+	QTime time = System::getInstance().getSimulatedTime();
 
 	ui.timeLabel->setText(time.toString(curTimeFormat));
 }

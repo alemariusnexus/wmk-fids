@@ -1,18 +1,30 @@
 #include "FIDSTableModel.h"
 #include "System.h"
+#include <nxcommon/util.h>
 #include <QColor>
 #include <QBrush>
 
 
 
 FIDSTableModel::FIDSTableModel(FlightPlan* plan)
-		: plan(plan), timeFormat("HH:mm"), maxDisplayedFlights(-1)
+		: plan(plan), timeFormat("HH:mm"), maxDisplayedFlights(-1), blinkState(true)
 {
+	System& sys = System::getInstance();
+
 	connect(plan, SIGNAL(flightUpdated(Flight*)), this, SLOT(flightUpdated(Flight*)));
 	connect(plan, SIGNAL(flightAboutToBeAdded(Flight*, size_t)), this, SLOT(flightAboutToBeAdded(Flight*, size_t)));
 	connect(plan, SIGNAL(flightAdded(Flight*)), this, SLOT(flightAdded(Flight*)));
 	connect(plan, SIGNAL(flightAboutToBeRemoved(Flight*)), this, SLOT(flightAboutToBeRemoved(Flight*)));
 	connect(plan, SIGNAL(flightRemoved(Flight*)), this, SLOT(flightRemoved(Flight*)));
+
+	int blinkInterval = sys.getIntOption("/blinkInterval", 1000);
+
+	if (blinkInterval > 0) {
+		connect(&blinkTimer, SIGNAL(timeout()), this, SLOT(blinkTick()));
+		blinkTimer.setSingleShot(false);
+		blinkTimer.setInterval(blinkInterval);
+		blinkTimer.start();
+	}
 }
 
 
@@ -101,7 +113,7 @@ QVariant FIDSTableModel::data(const QModelIndex& index, int role) const
 				if (abs(et.secsTo(flight->getScheduledDepartureTime())) < threshold) {
 					return QString("");
 				}
-				return et.toString(timeFormat);
+				return flight->getExpectedDepartureTime().toString(timeFormat);
 			} else {
 				return QString("");
 			}
@@ -124,7 +136,18 @@ QVariant FIDSTableModel::data(const QModelIndex& index, int role) const
 		break;
 	case ColRemarks:
 		if (role == Qt::DisplayRole) {
-			return flight->getRemark().toUpper();
+			auto it = blinkAnims.find(flight);
+			bool blinkStatus = true;
+
+			if (it != blinkAnims.end()) {
+				blinkStatus = this->blinkState;
+			}
+
+			if (blinkStatus) {
+				return flight->getRemark().toUpper();
+			} else {
+				return QString("");
+			}
 		} else if (role == Qt::ForegroundRole) {
 			if (flight->getRemarkColor().isValid()) {
 				return QBrush(flight->getRemarkColor());
@@ -177,12 +200,14 @@ QVariant FIDSTableModel::headerData(int section, Qt::Orientation orientation, in
 void FIDSTableModel::flightUpdated(Flight* flight)
 {
 	int row = plan->indexOf(flight);
+	updateBlinkStatus(flight);
 	emit dataChanged(createIndex(row, 0), createIndex(row, columnCount()));
 }
 
 
 void FIDSTableModel::flightAboutToBeAdded(Flight* flight, size_t atIdx)
 {
+	updateBlinkStatus(flight);
 	beginInsertRows(QModelIndex(), atIdx, atIdx);
 }
 
@@ -203,6 +228,81 @@ void FIDSTableModel::flightAboutToBeRemoved(Flight* flight)
 void FIDSTableModel::flightRemoved(Flight* flight)
 {
 	endRemoveRows();
+}
+
+
+void FIDSTableModel::updateBlinkStatus(Flight* flight)
+{
+	int blinkTime = flight->getRemarkBlinkTime();
+
+	bool updated = false;
+
+	if (blinkTime > 0) {
+		if (!blinkAnims.contains(flight)) {
+			// Start blink animation
+
+			BlinkAnim anim;
+			anim.startTickcount = GetTickcount();
+			blinkAnims.insert(flight, anim);
+
+			updated = true;
+		}
+	} else {
+		if (blinkAnims.contains(flight)) {
+			// Stop blink animation
+
+			blinkAnims.remove(flight);
+
+			updated = true;
+		}
+	}
+}
+
+
+void FIDSTableModel::blinkTick()
+{
+	uint64_t nowTc = GetTickcount();
+
+	QList<Flight*> endedBlinks;
+
+	blinkState = !blinkState;
+
+	for (auto it = blinkAnims.begin() ; it != blinkAnims.end() ; it++) {
+		Flight* flight = it.key();
+		BlinkAnim& anim = it.value();
+
+		uint64_t t = nowTc - anim.startTickcount;
+
+		if (t > flight->getRemarkBlinkTime()) {
+			endedBlinks << flight;
+			continue;
+		}
+
+		int row = plan->indexOf(flight);
+
+		if (row >= 0) {
+			emit dataChanged(createIndex(row, ColRemarks), createIndex(row, ColRemarks));
+		}
+
+		/*bool newState = (t / flight->getRemarkBlinkInterval()) % 2 == 0;
+
+		if (anim.curState != newState) {
+			anim.curState = newState;
+
+			int row = plan->indexOf(flight);
+
+			if (row >= 0) {
+				emit dataChanged(createIndex(row, ColRemarks), createIndex(row, ColRemarks));
+			}
+		}*/
+	}
+
+	for (Flight* flight : endedBlinks) {
+		blinkAnims.remove(flight);
+
+		int row = plan->indexOf(flight);
+		emit dataChanged(createIndex(row, ColRemarks), createIndex(row, ColRemarks));
+	}
 }
 
 

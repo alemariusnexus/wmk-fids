@@ -1,5 +1,6 @@
 #include "FlightSimulator.h"
 #include "System.h"
+#include <algorithm>
 #include <QTime>
 #include <QVariant>
 
@@ -34,6 +35,8 @@ void FlightSimulator::start()
 {
 	System& sys = System::getInstance();
 
+	beginBoardingTimeDeviation = sys.requireInt64Option("/simulation/beginBoardingTimeDeviation");
+
 	boardingTimeAverage = sys.requireInt64Option("/simulation/boardingTimeAverage");
 	boardingTimeDeviation = sys.requireInt64Option("/simulation/boardingTimeDeviation");
 
@@ -63,6 +66,8 @@ void FlightSimulator::start()
 
 	connect(&plan, SIGNAL(flightAdded(Flight*)), this, SLOT(flightAdded(Flight*)));
 
+	connect(&sys, SIGNAL(simulatedDateTimeChanged(const QDateTime&)), this, SLOT(simulatedDateTimeChanged(const QDateTime&)));
+
 	statusUpdateTimer.setSingleShot(false);
 	statusUpdateTimer.setInterval(sys.getIntOption("/simulation/updateInterval", 1) * 1000);
 	connect(&statusUpdateTimer, SIGNAL(timeout()), this, SLOT(statusUpdateTick()));
@@ -70,6 +75,8 @@ void FlightSimulator::start()
 	cancelUpdateTimer.setSingleShot(false);
 	cancelUpdateTimer.setInterval(sys.getIntOption("/simulation/cancelInterval", 1000));
 	connect(&cancelUpdateTimer, SIGNAL(timeout()), this, SLOT(cancelUpdateTick()));
+
+	connect(&delayedModeChangeTimer, SIGNAL(timeout()), this, SLOT(delayedModeChangeTriggered()));
 
 	enterMode(ModeNormal);
 }
@@ -81,6 +88,8 @@ void FlightSimulator::enterMode(Mode mode)
 		return;
 	}
 
+	System& sys = System::getInstance();
+
 	Mode oldMode = this->mode;
 	this->mode = mode;
 
@@ -91,16 +100,58 @@ void FlightSimulator::enterMode(Mode mode)
 		statusUpdateTimer.start();
 
 		for (Event* evt : events) {
-			scheduleEvent(evt);
+			evt->timer.stop();
+		}
+		for (Event* evt : events) {
+			scheduleEvent(evt, true);
 		}
 	} else if (mode == ModeCancelled) {
 		for (Event* evt : events) {
 			evt->timer.stop();
 		}
 
+		int cancelNumMin = sys.requireIntOption("/simulation/cancelNumMin");
+		int cancelNumMax = sys.requireIntOption("/simulation/cancelNumMax");
+		cancelNumLeft = cancelNumMin + rand() % (cancelNumMax-cancelNumMin+1);
+
 		statusUpdateTimer.stop();
+
+		cancelUpdateTick();
 		cancelUpdateTimer.start();
+	} else if (mode == ModeInvalid) {
+		cancelUpdateTimer.stop();
+		statusUpdateTimer.stop();
+
+		for (Event* evt : events) {
+			evt->timer.stop();
+		}
+
+		clearPlan();
 	}
+}
+
+
+void FlightSimulator::enterModeDelayed(Mode mode, int delay)
+{
+	delayedMode = mode;
+
+	delayedModeChangeTimer.stop();
+
+	delayedModeChangeTimer.setSingleShot(true);
+	delayedModeChangeTimer.setInterval(delay);
+	delayedModeChangeTimer.start();
+}
+
+
+void FlightSimulator::delayedModeChangeTriggered()
+{
+	enterMode(delayedMode);
+}
+
+
+void FlightSimulator::clearPlan()
+{
+	plan.clear();
 }
 
 
@@ -110,11 +161,11 @@ void FlightSimulator::reloadPlan()
 
 	int64_t loadCutoffTime = sys.getInt64Option("/simulation/loadCutoffTime", 300);
 
-	plan.clear();
+	clearPlan();
 
 	plan.loadFlights(sys.requireArrayOption("/flights"));
 
-	QTime now = QTime::currentTime();
+	QTime now = sys.getSimulatedTime();
 	QTime cutoffTime = now.addSecs(loadCutoffTime);
 
 	while (plan.size() != 0  &&  plan[0]->getScheduledDepartureTime() <= cutoffTime) {
@@ -125,41 +176,50 @@ void FlightSimulator::reloadPlan()
 
 void FlightSimulator::initFlight(Flight* flight)
 {
-	flight->setBeginBoardingTime(flight->getScheduledDepartureTime().addSecs(-getBoardingTimeAverage()));
+	//flight->setBeginBoardingTime(flight->getScheduledDepartureTime().addSecs(-getBoardingTimeAverage()));
+
+	// Initial boarding begin time (without event-based delays) is based on scheduled departure time and
+	// the expected boarding time.
+	int beginBoardingToSchedDepOffset = getBoardingTimeAverage() + (RandomFloat(0.0f, 1.0f) * beginBoardingTimeDeviation);
+	flight->setBeginBoardingTime(flight->getScheduledDepartureTime().addSecs(-beginBoardingToSchedDepOffset));
 }
 
 
-void FlightSimulator::scheduleEvent(Event* evt)
+void FlightSimulator::scheduleEvent(Event* evt, bool freshStart)
 {
+	System& sys = System::getInstance();
+	double timeScale = sys.getSimulatedTimeScale();
+
+	if (freshStart) {
+		int freshTriggersMin = (*evt->jevt)["freshTriggersMin"].GetInt();
+		int freshTriggersMax = (*evt->jevt)["freshTriggersMax"].GetInt();
+		int freshTriggers = freshTriggersMin + (rand() % (freshTriggersMax-freshTriggersMin+1));
+		printf("Fresh triggering %d\n", freshTriggers);
+
+		for (int i = 0 ; i < freshTriggers ; i++) {
+			triggerEvent(evt);
+		}
+	}
+
 	int intervalMin = (*evt->jevt)["intervalMin"].GetInt();
 	int intervalMax = (*evt->jevt)["intervalMax"].GetInt();
 	int interval = intervalMin + (rand() % (intervalMax-intervalMin+1));
 	evt->timer.setProperty("fidsEvtIdx", QVariant(events.indexOf(evt)));
 	evt->timer.setSingleShot(true);
-	evt->timer.setInterval(interval*1000);
+	evt->timer.setInterval(std::max((int) (interval*1000.0 / timeScale), 100));
 	evt->timer.start();
 }
 
 
-void FlightSimulator::flightAdded(Flight* flight)
+void FlightSimulator::triggerEvent(Event* evt)
 {
-	initFlight(flight);
-}
+	System& sys = System::getInstance();
 
+	QTime now = sys.getSimulatedTime();
 
-void FlightSimulator::eventOccurred()
-{
-	QTimer* t = (QTimer*) sender();
-	Event* evt = events[t->property("fidsEvtIdx").toInt()];
+	QList<Flight*> targetFlights;
 
-
-	QString type((*evt->jevt)["type"].GetString());
-
-	if (type == "delay") {
-		int flightIdx = rand() % plan.size();
-
-		Flight* flight = plan[flightIdx];
-
+	for (Flight* flight : plan) {
 		QString sstatus;
 		switch (flight->getStatus()) {
 		case Flight::StatusScheduled:
@@ -194,24 +254,74 @@ void FlightSimulator::eventOccurred()
 			}
 		}
 
-		if (valid) {
-			// Apply the event!
+		if (evt->jevt->HasMember("farAffectedTime")) {
+			int farAffectedTime = (*evt->jevt)["farAffectedTime"].GetInt();
 
-			if (type == "delay") {
-				int delayMin = (*evt->jevt)["delayMin"].GetInt();
-				int delayMax = (*evt->jevt)["delayMax"].GetInt();
-				int delay = delayMin + (rand() % (delayMax-delayMin+1));
+			int secsToExpDep = now.secsTo(flight->getExactExpectedDepartureTime());
 
-				//printf("Delaying flight %s for %ds\n", flight->toString().toUtf8().constData(), delay);
-
-				flight->delay(delay);
-				plan.notifyFlightUpdated(flight);
+			if (secsToExpDep > farAffectedTime) {
+				valid = false;
 			}
+		}
+
+		if (valid) {
+			targetFlights << flight;
 		}
 	}
 
+	if (targetFlights.empty()) {
+		printf("No valid target flight for event\n");
+		return;
+	}
 
-	scheduleEvent(evt);
+
+	int flightIdx = rand() % targetFlights.size();
+
+	Flight* flight = targetFlights[flightIdx];
+
+
+	QString type((*evt->jevt)["type"].GetString());
+
+	if (type == "delay") {
+		// Apply the event!
+
+		if (type == "delay") {
+			int delayMin = (*evt->jevt)["delayMin"].GetInt();
+			int delayMax = (*evt->jevt)["delayMax"].GetInt();
+			int delay = delayMin + (rand() % (delayMax-delayMin+1));
+
+			printf("Delaying flight %s for %ds\n", flight->toString().toUtf8().constData(), delay);
+
+			flight->delay(delay);
+			plan.notifyFlightUpdated(flight);
+		}
+	}
+}
+
+
+void FlightSimulator::flightAdded(Flight* flight)
+{
+	initFlight(flight);
+}
+
+
+void FlightSimulator::simulatedDateTimeChanged(const QDateTime& now)
+{
+	//reloadPlan();
+	Mode mode = this->mode;
+	enterMode(ModeInvalid);
+	enterMode(mode);
+}
+
+
+void FlightSimulator::eventOccurred()
+{
+	QTimer* t = (QTimer*) sender();
+	Event* evt = events[t->property("fidsEvtIdx").toInt()];
+
+	triggerEvent(evt);
+
+	scheduleEvent(evt, false);
 }
 
 
@@ -221,7 +331,9 @@ void FlightSimulator::statusUpdateTick()
 		return;
 	}
 
-	QTime now = QTime::currentTime();
+	System& sys = System::getInstance();
+
+	QTime now = sys.getSimulatedTime();
 
 	//printf("*** Tick ***\n");
 
@@ -238,8 +350,6 @@ void FlightSimulator::statusUpdateTick()
 			if (now >= flight->getBeginBoardingTime()) {
 				// Begin boarding!
 
-				printf("Begin boarding\n");
-
 				flight->setStatus(Flight::StatusBoarding);
 
 				/*// See how long boarding will take
@@ -249,7 +359,7 @@ void FlightSimulator::statusUpdateTick()
 
 				// Determine an initial time for when the gate will close
 				int64_t gateCloseTimespan = getBoardingTimeAverage()
-						+ (int64_t) (RandomFloat(-1.0f, 1.0f) * getBoardingTimeDeviation())
+						+ (int64_t) (RandomFloat(0.0f, 1.0f) * getBoardingTimeDeviation())
 						- getGateCloseTime();
 				flight->setGateCloseTime(flight->getBeginBoardingTime().addSecs(gateCloseTimespan));
 
@@ -260,8 +370,6 @@ void FlightSimulator::statusUpdateTick()
 		if (status == Flight::StatusBoarding) {
 			if (now >= flight->getGateCloseTime()) {
 				// Close the gates!
-
-				printf("Close gate\n");
 
 				// Determine an initial time for departure
 				int64_t departTimespan = getGateCloseTime();
@@ -276,8 +384,6 @@ void FlightSimulator::statusUpdateTick()
 			if (now >= flight->getDepartureTime()) {
 				// Depart!
 
-				printf("Depart\n");
-
 				flight->setStatus(Flight::StatusDeparted);
 				flightUpdated = true;
 			}
@@ -288,7 +394,6 @@ void FlightSimulator::statusUpdateTick()
 
 			if (now >= removeTime) {
 				plan.removeFlight(flight);
-				printf("Remove\n");
 			}
 		}
 
@@ -306,21 +411,32 @@ void FlightSimulator::cancelUpdateTick()
 		return;
 	}
 
+	System& sys = System::getInstance();
+
 	QList<Flight*> uncancelledFlights;
 
+	int targetNum = sys.requireIntOption("/simulation/cancelTargetNum");
+
+	size_t i = 0;
 	for (Flight* flight : plan) {
+		if (i >= targetNum) {
+			break;
+		}
 		if (flight->getStatus() != Flight::StatusCancelled) {
 			uncancelledFlights << flight;
 		}
+		i++;
 	}
 
-	if (uncancelledFlights.empty()) {
+	if (uncancelledFlights.empty()  ||  cancelNumLeft <= 0) {
 		cancelUpdateTimer.stop();
+		cancelNumLeft = 0;
 		return;
 	}
 
-	//int idx = rand() % uncancelledFlights.size();
-	int idx = 0;
+	cancelNumLeft--;
+
+	int idx = rand() % uncancelledFlights.size();
 
 	Flight* flight = uncancelledFlights[idx];
 
@@ -353,6 +469,8 @@ QTime FlightSimulator::roundExpectedDepartureTime(const QTime& time, const QTime
 
 void FlightSimulator::cue(const QString& cue)
 {
+	System& sys = System::getInstance();
+
 	if (cue == "Test1"  ||  cue == "Test2") {
 		int delay = 5;
 
@@ -366,10 +484,16 @@ void FlightSimulator::cue(const QString& cue)
 			int64_t actualDelay = flight->delay(delay);
 			plan.notifyFlightUpdated(flight);
 		}
+	} else if (cue == "EnterModePart1") {
+		enterMode(ModeInvalid);
+		enterModeDelayed(ModeNormal, 2000);
+		sys.setSimulatedTime(QTime::fromString(sys.requireStringOption("/simulationTimeStart")));
 	} else if (cue == "EnterModeCancelled") {
 		enterMode(ModeCancelled);
-	} else if (cue == "EnterModeNormal") {
-		enterMode(ModeNormal);
+	} else if (cue == "EnterModePart2") {
+		enterMode(ModeInvalid);
+		enterModeDelayed(ModeNormal, 2000);
+		sys.setSimulatedTime(QTime::fromString(sys.requireStringOption("/simulationTimePart2")));
 	}
 }
 

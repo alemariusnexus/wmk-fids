@@ -5,6 +5,9 @@
 #include <QList>
 #include <QColor>
 #include <QFont>
+#include <QTimer>
+#include <QDateTime>
+#include <QMap>
 #include "FlightPlan.h"
 #include "Flight.h"
 
@@ -36,6 +39,11 @@ private:
 		ColMAX = ColMarginRight
 	};
 
+	struct BlinkAnim
+	{
+		uint64_t startTickcount;
+	};
+
 public:
 	FIDSTableModel(FlightPlan* plan);
 
@@ -50,12 +58,17 @@ public:
 	QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const;
 	QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
 
+private:
+	void updateBlinkStatus(Flight* flight);
+
 private slots:
 	void flightUpdated(Flight* flight);
 	void flightAboutToBeAdded(Flight* flight, size_t atIdx);
 	void flightAdded(Flight* flight);
 	void flightAboutToBeRemoved(Flight* flight);
 	void flightRemoved(Flight* flight);
+
+	void blinkTick();
 
 private:
 	FlightPlan* plan;
@@ -64,6 +77,9 @@ private:
 	RowScheme headerScheme;
 	QString timeFormat;
 	int maxDisplayedFlights;
+	QTimer blinkTimer;
+	QMap<Flight*, BlinkAnim> blinkAnims;
+	bool blinkState;
 };
 
 #endif /* FIDS_FIDSTABLEMODEL_H_ */

@@ -12,6 +12,7 @@ Flight::Flight (
 )	: plan(plan), schedDepTime(schedDepTime), destination(destination), flightNo(flightNo), gate(gate),
 	  status(StatusScheduled)
 {
+	init();
 }
 
 
@@ -27,6 +28,19 @@ Flight::Flight(FlightPlan* plan, const rapidjson::Value& jsonData)
 	destination = QString::fromUtf8(jsonData[1].GetString(), jsonData[1].GetStringLength());
 	flightNo = QString::fromUtf8(jsonData[2].GetString(), jsonData[2].GetStringLength());
 	gate = QString::fromUtf8(jsonData[3].GetString(), jsonData[3].GetStringLength());
+
+	init();
+}
+
+
+void Flight::init()
+{
+	System& sys = System::getInstance();
+
+	cancelledBlinkTime = sys.getIntOption("/blinkTimeCancelled", 0);
+	boardingBlinkTime = sys.getIntOption("/blinkTimeBoarding", 0);
+	gateClosingBlinkTime = sys.getIntOption("/blinkTimeGateClosing", 0);
+	departedBlinkTime = sys.getIntOption("/blinkTimeDeparted", 0);
 }
 
 
@@ -171,6 +185,22 @@ QString Flight::getRemark() const
 	}
 
 	return QString();
+}
+
+
+int Flight::getRemarkBlinkTime() const
+{
+	if (status == StatusCancelled) {
+		return cancelledBlinkTime;
+	} else if (status == StatusBoarding) {
+		return boardingBlinkTime;
+	} else if (status == StatusGateClosing) {
+		return gateClosingBlinkTime;
+	} else if (status == StatusDeparted) {
+		return departedBlinkTime;
+	}
+
+	return 0;
 }
 
 
