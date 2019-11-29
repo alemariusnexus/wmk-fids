@@ -16,15 +16,14 @@ public:
 
 protected:
 	virtual void closeEvent(QCloseEvent* evt);
-
-private:
-	void cueTriggered(const QString& cue);
+	virtual void keyReleaseEvent(QKeyEvent* evt);
 
 private slots:
 	void init();
 	void fidsWidgetClosed();
 	void cueButtonClicked();
 	void onAbout();
+	void cueTriggered(const QString& cue);
 
 private:
 	Ui_FIDSControlWindow ui;

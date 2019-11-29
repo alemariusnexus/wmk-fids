@@ -18,8 +18,6 @@ public:
 	FIDSWidget(QWidget* parent = nullptr);
 	virtual ~FIDSWidget();
 
-	void cue(const QString& cue);
-
 	void setWeather(const QString& weather);
 
 protected:
@@ -33,6 +31,7 @@ signals:
 private slots:
 	void init();
 	void tick();
+	void cueTriggered(const QString& cue);
 
 private:
 	void autoResizeTable();

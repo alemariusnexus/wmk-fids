@@ -1,5 +1,6 @@
 #include "System.h"
 #include <QMessageBox>
+#include <QShortcut>
 
 
 
@@ -58,6 +59,47 @@ void System::unhandledException(Exception& ex)
 			"Exception at top level",
 			QString("ERROR: Exception caught at top level: %1").arg(QString(ex.what()))
 			);
+}
+
+
+/*bool System::handleGlobalHotkeys(QKeyEvent* evt)
+{
+
+}*/
+
+
+void System::installGlobalShortcuts(QWidget* parent)
+{
+	// Mode shortcuts
+
+	const rapidjson::Value* jmodes = getObjectOption("/modes");
+	if (jmodes) {
+		for (auto it = jmodes->MemberBegin() ; it != jmodes->MemberEnd() ; it++) {
+			CString mode = it->name.GetString();
+			const rapidjson::Value& jmode = it->value;
+
+			if (jmode.HasMember("shortcut")) {
+				QString shortcutStr(jmode["shortcut"].GetString());
+
+				QShortcut* shortcut = new QShortcut(QKeySequence(shortcutStr), parent);
+				connect(shortcut, SIGNAL(activated()), this, SLOT(cueShortcutActivated()));
+				shortcut->setObjectName(QString("EnterMode%1").arg(mode));
+			}
+		}
+	}
+}
+
+
+void System::cueShortcutActivated()
+{
+	QShortcut* shortcut = (QShortcut*) sender();
+	cue(shortcut->objectName());
+}
+
+
+void System::cue(const QString& cue)
+{
+	emit cueTriggered(cue);
 }
 
 

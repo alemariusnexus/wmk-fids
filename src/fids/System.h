@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QDateTime>
 #include <QTime>
+#include <QKeyEvent>
 #include <nxcommon/file/File.h>
 #include <nxcommon/config/ConfigFile.h>
 #include <nxcommon/config/ConfigFileDelegate.h>
@@ -25,6 +26,10 @@ public:
 	ConfigFile& getConfigFile();
 
 	void unhandledException(Exception& ex);
+	void installGlobalShortcuts(QWidget* parent);
+	//bool handleGlobalHotkeys(QKeyEvent* evt);
+
+	void cue(const QString& cue);
 
 	QDateTime getSimulatedDateTime() const;
 	QTime getSimulatedTime() const { return getSimulatedDateTime().time(); }
@@ -37,10 +42,14 @@ public:
 	double getSimulatedTimeScale() const { return simTimeScale; }
 
 signals:
+	void cueTriggered(const QString& cue);
 	void simulatedDateTimeChanged(const QDateTime& now);
 
 protected:
 	virtual const ConfigFile* getConfigFileDelegate() const;
+
+private slots:
+	void cueShortcutActivated();
 
 private:
 	System();

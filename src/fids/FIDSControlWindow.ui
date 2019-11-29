@@ -6,69 +6,33 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>423</width>
-    <height>310</height>
+    <width>1014</width>
+    <height>680</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>FIDSControlWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QVBoxLayout" name="verticalLayout">
+   <layout class="QVBoxLayout" name="verticalLayout" stretch="0,1,1">
     <item>
-     <widget class="QGroupBox" name="groupBox">
+     <widget class="QLabel" name="curModeLabel">
+      <property name="font">
+       <font>
+        <pointsize>28</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>Current Mode: [INVALID]</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QGroupBox" name="modesBox">
       <property name="title">
        <string>Modes</string>
       </property>
-      <layout class="QVBoxLayout" name="verticalLayout_2">
-       <item>
-        <widget class="QPushButton" name="cueButtonEnterModePart1">
-         <property name="text">
-          <string>Mode &quot;Part 1&quot;</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <spacer name="verticalSpacer">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item>
-        <widget class="QPushButton" name="cueButtonEnterModeCancelled">
-         <property name="text">
-          <string>Mode &quot;Cancelled&quot;</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <spacer name="verticalSpacer_2">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item>
-        <widget class="QPushButton" name="cueButtonEnterModePart2">
-         <property name="text">
-          <string>Mode &quot;Part 2&quot;</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
+      <layout class="QVBoxLayout" name="verticalLayout_2"/>
      </widget>
     </item>
     <item>
@@ -86,7 +50,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>423</width>
+     <width>1014</width>
      <height>30</height>
     </rect>
    </property>

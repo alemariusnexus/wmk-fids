@@ -47,8 +47,6 @@ public:
 	void enterMode(Mode mode);
 	void enterModeDelayed(Mode mode, int delay);
 
-	void cue(const QString& cue);
-
 private:
 	FlightSimulator();
 
@@ -64,6 +62,8 @@ private:
 
 private slots:
 	void flightAdded(Flight* flight);
+
+	void cueTriggered(const QString& cue);
 
 	void simulatedDateTimeChanged(const QDateTime& now);
 

@@ -1,6 +1,6 @@
 {
-    "simulationTimeStart" : "10:17",
-    "simulationTimePart2" : "14:36",
+    //"simulationTimeStart" : "10:17",
+    //"simulationTimePart2" : "14:36",
     "simulationTimeScale" : 1.0,
     /*"simulationTimePresets" : [
         { "name" : "Part 1", "time" : "14:00" },
@@ -18,8 +18,37 @@
     "weatherPart2" : "clear",
     "weather" : [
         { "id" : "clear", "icon" : "icons/weather-clear.png", "iconScale" : 80 },
-        { "id" : "rainy", "icon" : "icons/weather-rainy.png", "iconScale" : 80 }
+        { "id" : "rainy", "icon" : "icons/weather-rainy.png", "iconScale" : 80 },
+        { "id" : "night", "icon" : "icons/weather-night.png", "iconScale" : 80 },
+        { "id" : "cloudynight", "icon" : "icons/weather-cloudynight.png", "iconScale" : 80 }
     ],
+    
+    "modes" : {
+        "Rainy" : {
+            "weather" : "rainy",
+            "simulationTime" : null,
+            "description" : "Start mode. Rainy weather for \"Reise ohne Ende\"",
+            "shortcut" : "1"
+        },
+        "Normal1" : {
+            "weather" : "cloudynight",
+            "simulationTime" : "+00:15",
+            "description" : "Normal mode for after \"Reise ohne Ende\"",
+            "enterDelay" : 1000,
+            "shortcut" : "2"
+        },
+        "Cancelled" : {
+            "description" : "\"CANCELLED\" mode for \"A Million Dreams\"",
+            "shortcut" : "3"
+        },
+        "Normal2" : {
+            "description" : "Normal mode for after \"A Million Dreams\"",
+            "simulationTime" : "+01:10",
+            "enterDelay" : 1000,
+            "shortcut" : "4"
+        }
+    },
+    "startMode" : "Rainy",
     
     "simulation" : {
         "beginBoardingTimeDeviation" : 30,
@@ -35,9 +64,9 @@
         "cancelTargetNum" : 15,
         "cancelNumMin" : 15,
         "cancelNumMax" : 15,
-        //"loadCutoffTime" : 300,
+        "loadCutoffTime" : 300,
         //"loadCutoffTime" : 60,
-        "loadCutoffTime" : 600,
+        //"loadCutoffTime" : 600,
         
         "events" : [
             {
@@ -752,6 +781,86 @@
         [ "22:15", "Stuttgart", "LH136", "E3" ],
         [ "22:15", "Hong Kong", "LH796", "Z34" ],
         [ "22:15", "Moscow", "SU2305", "D32" ],
-        [ "22:15", "Buenos Aires", "LH510", "D50" ]
+        [ "22:15", "Buenos Aires", "LH510", "D50" ],
+        
+        
+        [ "22:30", "Porto", "FR1536", "A25" ],
+        [ "22:30", "Madrid", "IB8713", "Z48" ],
+        [ "22:30", "Hamburg", "LH2", "B42" ],
+        [ "22:35", "Zurich", "LH1182", "A53" ],
+        [ "22:40", "Bremen", "LH350", "B5" ],
+        [ "22:40", "Stockholm", "LH800", "B32" ],
+        [ "22:40", "Dublin", "FR381", "D48" ],
+        [ "22:45", "Berlin", "LH170", "B61" ],
+        [ "22:45", "Dublin", "LH976", "B20" ],
+        [ "22:50", "Paris", "LH1026", "E6" ],
+        [ "22:55", "Amsterdam", "KL1762", "C14" ],
+        [ "22:55", "Hannover", "LH46", "A16" ],
+        [ "23:00", "London", "BA8731", "A66" ],
+        [ "23:00", "Palma de Mallorca", "FR4140", "Z16" ],
+        [ "23:00", "Hamburg", "LH4", "Z14" ],
+        [ "23:00", "London", "LH924", "A9" ],
+        [ "23:00", "Amsterdam", "LH986", "B58" ],
+        [ "23:00", "Warsaw", "LH1346", "A18" ],
+        [ "23:00", "Warsaw", "LO384", "Z15" ],
+        [ "23:00", "London", "FR1686", "D37" ],
+        [ "23:05", "Leipzig", "LH154", "B62" ],
+        [ "23:05", "Dresden", "LH204", "D32" ],
+        [ "23:05", "Paris", "AF1019", "A29" ],
+        [ "23:05", "Nurnberg", "LH140", "A14" ],
+        [ "23:05", "Oslo", "LH866", "A18" ],
+        [ "23:05", "London", "LH926", "A10" ],
+        [ "23:10", "Abu Dhabi", "EY902", "A66" ],
+        [ "23:10", "Stuttgart", "LH126", "A67" ],
+        [ "23:10", "Geneva", "LH1212", "B25" ],
+        [ "23:10", "Dusseldorf", "LH72", "Z65" ],
+        [ "23:10", "Barcelona", "LH1124", "B45" ],
+        [ "23:15", "Munich", "LH94", "B6" ],
+        [ "23:20", "Rome", "LH230", "E24" ],
+        [ "23:25", "Luxembourg", "LH390", "B18" ],
+        [ "23:25", "Brussels", "LH1004", "A27" ],
+        [ "23:30", "London", "BA901", "B43" ],
+        [ "23:30", "Milan", "LH248", "D41" ],
+        [ "23:30", "Birmingham", "LH952", "B22" ],
+        [ "23:40", "Hurghada", "XG2341", "A26" ],
+        [ "23:40", "Istanbul", "TK1598", "B11" ],
+        [ "23:45", "Berlin", "LH174", "Z11" ],
+        [ "23:50", "Vienna", "OS128", "A58" ],
+        [ "23:50", "London", "BA3385", "Z56" ],
+        [ "23:52", "Mannheim", "LH3430", "Z47" ],
+        [ "23:55", "Tenerife", "DE3616", "A51" ],
+        [ "23:55", "Copenhagen", "LH824", "A15" ],
+        [ "23:55", "London", "LH900", "Z12" ],
+        [ "23:55", "Manchester", "LH940", "C5" ],
+        
+        [ "23:55", "Hamburg", "LH6", "D7" ],
+        [ "23:55", "Zurich", "LH1184", "B7" ],
+        [ "23:55", "Gothenburg", "LH812", "A56" ],
+        [ "23:55", "Florence", "LH308", "E18" ],
+        [ "23:55", "Fuerteventura", "DE1402", "Z46" ],
+        [ "23:55", "Istanbul", "TK6404", "Z41" ],
+        [ "23:55", "Graz", "OS252", "D44" ],
+        [ "23:55", "Dubai", "DE2358", "B52" ],
+        [ "23:55", "Berlin", "LH38", "A5" ],
+        [ "23:55", "Munich", "LH96", "B50" ],
+        [ "23:55", "Turin", "EN8842", "Z46" ],
+        [ "23:55", "Nice", "LH1058", "B9" ],
+        [ "23:55", "Marseille", "LH1086", "A35" ],
+        [ "23:55", "Paris", "LH1028", "C14" ],
+        [ "23:55", "Krakow", "LH1364", "Z15" ],
+        [ "23:55", "New York", "SQ26", "B53" ],
+        [ "23:55", "Bologna", "LH282", "A40" ],
+        [ "23:55", "Budapest", "LH1334", "Z24" ],
+        [ "23:55", "Berlin", "U25542", "A23" ],
+        [ "23:55", "Chicago", "UA945", "D11" ],
+        [ "23:55", "Amsterdam", "CX38", "B55" ],
+        [ "23:55", "Bridgetown", "DE3782", "A22" ],
+        [ "23:55", "Milan", "LH270", "A65" ],
+        [ "23:55", "Venice", "LH324", "D54" ],
+        [ "23:55", "Berlin", "LH176", "A11" ],
+        [ "23:55", "Poznan", "LH1388", "D55" ],
+        [ "23:55", "Zurich", "LX1069", "D40" ],
+        [ "23:55", "Billund", "LH836", "E7" ],
+        [ "23:55", "Palma de Mallorca", "LH1154", "E2" ]
     ]
 }

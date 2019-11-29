@@ -66,6 +66,7 @@ void FlightSimulator::start()
 
 	connect(&plan, SIGNAL(flightAdded(Flight*)), this, SLOT(flightAdded(Flight*)));
 
+	connect(&sys, SIGNAL(cueTriggered(const QString&)), this, SLOT(cueTriggered(const QString&)));
 	connect(&sys, SIGNAL(simulatedDateTimeChanged(const QDateTime&)), this, SLOT(simulatedDateTimeChanged(const QDateTime&)));
 
 	statusUpdateTimer.setSingleShot(false);
@@ -78,7 +79,10 @@ void FlightSimulator::start()
 
 	connect(&delayedModeChangeTimer, SIGNAL(timeout()), this, SLOT(delayedModeChangeTriggered()));
 
-	enterMode(ModeNormal);
+	//enterMode(ModeNormal);
+
+	CString startMode = sys.requireStringOption("/startMode");
+	sys.cue(QString("EnterMode%1").arg(startMode));
 }
 
 
@@ -194,7 +198,6 @@ void FlightSimulator::scheduleEvent(Event* evt, bool freshStart)
 		int freshTriggersMin = (*evt->jevt)["freshTriggersMin"].GetInt();
 		int freshTriggersMax = (*evt->jevt)["freshTriggersMax"].GetInt();
 		int freshTriggers = freshTriggersMin + (rand() % (freshTriggersMax-freshTriggersMin+1));
-		printf("Fresh triggering %d\n", freshTriggers);
 
 		for (int i = 0 ; i < freshTriggers ; i++) {
 			triggerEvent(evt);
@@ -467,7 +470,7 @@ QTime FlightSimulator::roundExpectedDepartureTime(const QTime& time, const QTime
 }
 
 
-void FlightSimulator::cue(const QString& cue)
+void FlightSimulator::cueTriggered(const QString& cue)
 {
 	System& sys = System::getInstance();
 
@@ -484,15 +487,55 @@ void FlightSimulator::cue(const QString& cue)
 			int64_t actualDelay = flight->delay(delay);
 			plan.notifyFlightUpdated(flight);
 		}
-	} else if (cue == "EnterModePart1") {
-		enterMode(ModeInvalid);
-		enterModeDelayed(ModeNormal, 2000);
-		if (sys.hasOption("/simulationTimeStart")) {
+	} else if (cue.startsWith("EnterMode")) {
+		QString mode = cue.right(cue.length() - strlen("EnterMode"));
+
+		const rapidjson::Value& jmode = sys.requireObjectOption(CString("/modes/").append(mode));
+
+		if (jmode.HasMember("simulationTime")) {
+			if (jmode["simulationTime"].IsString()) {
+				QString timeStr(jmode["simulationTime"].GetString());
+				QTime time;
+
+				if (timeStr.startsWith("+")) {
+					QTime toffs = QTime::fromString(timeStr.right(timeStr.length()-1));
+					time = sys.getSimulatedTime().addMSecs(toffs.msecsSinceStartOfDay());
+				} else {
+					time = QTime::fromString(timeStr);
+				}
+				sys.setSimulatedTime(time);
+			} else {
+				sys.setSimulatedTime(QTime::currentTime());
+			}
+		}
+
+		int delay = -1;
+
+		if (jmode.HasMember("enterDelay")) {
+			delay = jmode["enterDelay"].GetInt();
+		}
+
+		if (mode == "Cancelled") {
+			if (delay > 0) {
+				enterModeDelayed(ModeCancelled, delay);
+			} else {
+				enterMode(ModeCancelled);
+			}
+		} else {
+			if (delay > 0) {
+				enterMode(ModeInvalid);
+				enterModeDelayed(ModeNormal, delay);
+			} else {
+				enterMode(ModeNormal);
+			}
+		}
+
+		/*if (sys.hasOption("/simulationTimeStart")) {
 			sys.setSimulatedTime(QTime::fromString(sys.requireStringOption("/simulationTimeStart")));
 		} else {
 			sys.setSimulatedTime(QTime::currentTime());
-		}
-	} else if (cue == "EnterModeCancelled") {
+		}*/
+	} /*else if (cue == "EnterModeCancelled") {
 		enterMode(ModeCancelled);
 	} else if (cue == "EnterModePart2") {
 		enterMode(ModeInvalid);
@@ -502,7 +545,7 @@ void FlightSimulator::cue(const QString& cue)
 		} else {
 			sys.setSimulatedTime(QTime::currentTime());
 		}
-	}
+	}*/
 }
 
 

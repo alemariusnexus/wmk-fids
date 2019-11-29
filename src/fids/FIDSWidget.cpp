@@ -116,6 +116,12 @@ void FIDSWidget::init()
 	}
 
 
+	connect(&sys, SIGNAL(cueTriggered(const QString&)), this, SLOT(cueTriggered(const QString&)));
+
+
+	sys.installGlobalShortcuts(this);
+
+
 	tickTimer.setSingleShot(false);
 	tickTimer.setInterval(10);
 	connect(&tickTimer, SIGNAL(timeout()), this, SLOT(tick()));
@@ -123,15 +129,27 @@ void FIDSWidget::init()
 }
 
 
-void FIDSWidget::cue(const QString& cue)
+void FIDSWidget::cueTriggered(const QString& cue)
 {
 	System& sys = System::getInstance();
 
-	if (cue == "EnterModePart1") {
+	if (cue.startsWith("EnterMode")) {
+		QString mode = cue.right(cue.length() - strlen("EnterMode"));
+
+		const rapidjson::Value& jmode = sys.requireObjectOption(CString("/modes/").append(mode));
+
+		if (jmode.HasMember("weather")) {
+			CString weather(jmode["weather"].GetString());
+
+			setWeather(weather);
+		}
+	}
+
+	/*if (cue == "EnterModePart1") {
 		setWeather(sys.requireStringOption("/weatherDefault"));
 	} if (cue == "EnterModePart2") {
 		setWeather(sys.requireStringOption("/weatherPart2"));
-	}
+	}*/
 }
 
 
@@ -229,6 +247,11 @@ FIDSTableModel::RowScheme FIDSWidget::loadRowScheme(const rapidjson::Value& jsch
 
 void FIDSWidget::keyReleaseEvent(QKeyEvent* evt)
 {
+	System& sys = System::getInstance();
+
+	/*if (sys.handleGlobalHotkeys(evt)) {
+		evt->accept();
+	} else {*/
 	if (evt->key() == Qt::Key_Escape) {
 		evt->accept();
 		close();
@@ -240,6 +263,7 @@ void FIDSWidget::keyReleaseEvent(QKeyEvent* evt)
 			showFullScreen();
 		}
 	}
+	//}
 
 	QWidget::keyReleaseEvent(evt);
 }
