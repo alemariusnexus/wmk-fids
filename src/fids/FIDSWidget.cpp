@@ -1,6 +1,7 @@
 #include "FIDSWidget.h"
 #include "System.h"
 #include "FlightSimulator.h"
+#include <QGraphicsOpacityEffect>
 #include <QKeyEvent>
 #include <QTimer>
 #include <QSettings>
@@ -9,7 +10,7 @@
 
 
 FIDSWidget::FIDSWidget(QWidget* parent)
-		: QWidget(parent), curWeatherMovie(nullptr)
+		: QWidget(parent), curWeatherMovie(nullptr), fadeType(FadeTypeInvalid)
 {
 	ui.setupUi(this);
 
@@ -118,6 +119,11 @@ void FIDSWidget::init()
 
 	connect(&sys, SIGNAL(cueTriggered(const QString&)), this, SLOT(cueTriggered(const QString&)));
 
+	fadeEffect = new QGraphicsOpacityEffect(ui.contentWidget);
+	fadeEffect->setOpacity(1.0f);
+	ui.contentWidget->setGraphicsEffect(fadeEffect);
+	ui.contentWidget->setAutoFillBackground(true);
+
 
 	sys.installGlobalShortcuts(this);
 
@@ -126,6 +132,11 @@ void FIDSWidget::init()
 	tickTimer.setInterval(10);
 	connect(&tickTimer, SIGNAL(timeout()), this, SLOT(tick()));
 	tickTimer.start();
+
+	fadeTimer.setSingleShot(false);
+	fadeTimer.setInterval(50);
+	connect(&fadeTimer, SIGNAL(timeout()), this, SLOT(fadeTick()));
+	fadeTimer.start();
 }
 
 
@@ -133,6 +144,22 @@ void FIDSWidget::cueTriggered(const QString& cue)
 {
 	System& sys = System::getInstance();
 
+	if (cue.startsWith("FadeEnterMode")) {
+		QString mode = cue.right(cue.length() - strlen("FadeEnterMode"));
+
+		/*QGraphicsOpacityEffect* op = new QGraphicsOpacityEffect(ui.contentWidget);
+		op->setOpacity(0.5f);
+		ui.contentWidget->setGraphicsEffect(op);
+		ui.contentWidget->setAutoFillBackground(true);*/
+
+		const rapidjson::Value& jmode = sys.requireObjectOption(CString("/modes/").append(mode));
+
+		if (jmode.HasMember("fadeTime")) {
+			int fadeTime = jmode["fadeTime"].GetInt();
+			int fadeMidTime = jmode.HasMember("fadeMidTime") ? jmode["fadeMidTime"].GetInt() : 0;
+			cueFade(fadeTime, FadeTypeInOut, fadeMidTime);
+		}
+	}
 	if (cue.startsWith("EnterMode")) {
 		QString mode = cue.right(cue.length() - strlen("EnterMode"));
 
@@ -190,6 +217,15 @@ void FIDSWidget::setWeather(const QString& weather)
 }
 
 
+void FIDSWidget::cueFade(uint64_t fadeTime, FadeType type, uint64_t fadeMidTime)
+{
+	fadeStartTime = GetTickcount();
+	fadeTimeTotal = fadeTime;
+	this->fadeMidTime = fadeMidTime;
+	fadeType = type;
+}
+
+
 void FIDSWidget::autoResizeTable()
 {
 	System& sys = System::getInstance();
@@ -218,6 +254,37 @@ void FIDSWidget::tick()
 	QTime time = System::getInstance().getSimulatedTime();
 
 	ui.timeLabel->setText(time.toString(curTimeFormat));
+}
+
+
+void FIDSWidget::fadeTick()
+{
+	float opacity = 1.0f;
+
+	uint64_t now = GetTickcount();
+
+	if (fadeType == FadeTypeInOut) {
+		uint64_t fadeIntervalTime = (fadeTimeTotal-fadeMidTime) / 2;
+
+		if (now <= fadeStartTime+fadeIntervalTime) {
+			// Fade out
+			opacity = 1.0f - (now - fadeStartTime) / (float) fadeIntervalTime;
+		} else if (now <= fadeStartTime+fadeIntervalTime+fadeMidTime) {
+			// Remain faded out
+			opacity = 0.0f;
+		} else if (now <= fadeStartTime+2*fadeIntervalTime+fadeMidTime) {
+			// Fade in
+			opacity = (now - (fadeStartTime+fadeTimeTotal/2)) / (float) (fadeTimeTotal/2);
+		} else {
+			// Fade done
+			opacity = 1.0f;
+			fadeType = FadeTypeInvalid;
+		}
+	}
+
+	opacity = std::min(std::max(opacity, 0.0f), 1.0f);
+
+	fadeEffect->setOpacity(opacity);
 }
 
 

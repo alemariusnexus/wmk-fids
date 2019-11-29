@@ -79,10 +79,7 @@ void FlightSimulator::start()
 
 	connect(&delayedModeChangeTimer, SIGNAL(timeout()), this, SLOT(delayedModeChangeTriggered()));
 
-	//enterMode(ModeNormal);
-
-	CString startMode = sys.requireStringOption("/startMode");
-	sys.cue(QString("EnterMode%1").arg(startMode));
+	enterMode(ModeInvalid);
 }
 
 
@@ -122,6 +119,13 @@ void FlightSimulator::enterMode(Mode mode)
 
 		cancelUpdateTick();
 		cancelUpdateTimer.start();
+	} else if (mode == ModeFreeze) {
+		for (Event* evt : events) {
+			evt->timer.stop();
+		}
+
+		cancelUpdateTimer.stop();
+		statusUpdateTimer.stop();
 	} else if (mode == ModeInvalid) {
 		cancelUpdateTimer.stop();
 		statusUpdateTimer.stop();
@@ -509,11 +513,19 @@ void FlightSimulator::cueTriggered(const QString& cue)
 			}
 		}
 
-		int delay = -1;
+		if (mode == "Cancelled") {
+			enterMode(ModeCancelled);
+		} else {
+			enterMode(ModeNormal);
+		}
+
+		/*int delay = -1;
 
 		if (jmode.HasMember("enterDelay")) {
 			delay = jmode["enterDelay"].GetInt();
 		}
+
+		delay = -1;
 
 		if (mode == "Cancelled") {
 			if (delay > 0) {
@@ -523,18 +535,24 @@ void FlightSimulator::cueTriggered(const QString& cue)
 			}
 		} else {
 			if (delay > 0) {
-				enterMode(ModeInvalid);
+				//enterMode(ModeInvalid);
 				enterModeDelayed(ModeNormal, delay);
 			} else {
 				enterMode(ModeNormal);
 			}
-		}
+		}*/
 
 		/*if (sys.hasOption("/simulationTimeStart")) {
 			sys.setSimulatedTime(QTime::fromString(sys.requireStringOption("/simulationTimeStart")));
 		} else {
 			sys.setSimulatedTime(QTime::currentTime());
 		}*/
+	} else if (cue.startsWith("FadeEnterMode")) {
+		QString mode = cue.right(cue.length() - strlen("EnterMode"));
+
+		if (mode != "Cancelled") {
+			enterMode(ModeFreeze);
+		}
 	} /*else if (cue == "EnterModeCancelled") {
 		enterMode(ModeCancelled);
 	} else if (cue == "EnterModePart2") {

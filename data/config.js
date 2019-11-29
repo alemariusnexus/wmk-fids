@@ -28,14 +28,19 @@
             "weather" : "rainy",
             "simulationTime" : null,
             "description" : "Start mode. Rainy weather for \"Reise ohne Ende\"",
-            "shortcut" : "1"
+            "enterDelay" : 1000,
+            "shortcut" : "1",
+            "fadeTime" : 3000,
+            "fadeMidTime" : 1000
         },
         "Normal1" : {
             "weather" : "cloudynight",
             "simulationTime" : "+00:15",
             "description" : "Normal mode for after \"Reise ohne Ende\"",
             "enterDelay" : 1000,
-            "shortcut" : "2"
+            "shortcut" : "2",
+            "fadeTime" : 3000,
+            "fadeMidTime" : 1000
         },
         "Cancelled" : {
             "description" : "\"CANCELLED\" mode for \"A Million Dreams\"",
@@ -43,9 +48,11 @@
         },
         "Normal2" : {
             "description" : "Normal mode for after \"A Million Dreams\"",
-            "simulationTime" : "+01:10",
+            "simulationTime" : "+00:20",
             "enterDelay" : 1000,
-            "shortcut" : "4"
+            "shortcut" : "4",
+            "fadeTime" : 3000,
+            "fadeMidTime" : 1000
         }
     },
     "startMode" : "Rainy",

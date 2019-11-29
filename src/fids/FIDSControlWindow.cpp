@@ -102,7 +102,7 @@ void FIDSControlWindow::init()
 			QPushButton* modeButton = new QPushButton(ui.modesBox);
 
 			modeButton->setText(buttonText);
-			modeButton->setObjectName(QString("cueButtonEnterMode%1").arg(mode));
+			modeButton->setObjectName(QString("cueButtonFadeEnterMode%1").arg(mode));
 			ui.modesBox->layout()->addWidget(modeButton);
 
 			QFont font = modeButton->font();
@@ -161,6 +161,10 @@ void FIDSControlWindow::init()
 
 	FlightSimulator& sim = FlightSimulator::getInstance();
 	sim.start();
+
+
+	CString startMode = sys.requireStringOption("/startMode");
+	sys.cue(QString("FadeEnterMode%1").arg(startMode));
 }
 
 
@@ -180,7 +184,7 @@ void FIDSControlWindow::cueTriggered(const QString& cue)
 		printf("Setting simulated time to %s\n", time.toString("HH:mm").toUtf8().constData());
 
 		sys.setSimulatedTime(time);
-	} else if (cue.startsWith("EnterMode")) {
+	} else if (cue.startsWith("FadeEnterMode")) {
 		QString mode = cue.right(cue.length() - strlen("EnterMode"));
 
 		ui.curModeLabel->setText(QString("Current Mode: <b>%1</b>").arg(mode));

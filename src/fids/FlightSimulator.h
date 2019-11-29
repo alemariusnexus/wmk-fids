@@ -24,7 +24,8 @@ private:
 		ModeInvalid,
 
 		ModeNormal,
-		ModeCancelled
+		ModeCancelled,
+		ModeFreeze
 	};
 
 public:
@@ -46,6 +47,8 @@ public:
 
 	void enterMode(Mode mode);
 	void enterModeDelayed(Mode mode, int delay);
+
+	bool isFrozen() { return mode == ModeFreeze; }
 
 private:
 	FlightSimulator();

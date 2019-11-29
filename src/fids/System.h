@@ -30,6 +30,7 @@ public:
 	//bool handleGlobalHotkeys(QKeyEvent* evt);
 
 	void cue(const QString& cue);
+	void cueDelayed(const QString& cue, uint64_t delay);
 
 	QDateTime getSimulatedDateTime() const;
 	QTime getSimulatedTime() const { return getSimulatedDateTime().time(); }
@@ -50,6 +51,7 @@ protected:
 
 private slots:
 	void cueShortcutActivated();
+	void delayedCueTriggered(const QString& cue);
 
 private:
 	System();
@@ -61,6 +63,8 @@ private:
 	QDateTime simTimeSyncPointReal;
 	QDateTime simTimeSyncPointSim;
 	double simTimeScale;
+
+	QString delayedCue;
 };
 
 #endif /* FIDS_SYSTEM_H_ */

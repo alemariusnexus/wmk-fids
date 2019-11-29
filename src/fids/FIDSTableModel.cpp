@@ -1,5 +1,6 @@
 #include "FIDSTableModel.h"
 #include "System.h"
+#include "FlightSimulator.h"
 #include <nxcommon/util.h>
 #include <QColor>
 #include <QBrush>
@@ -261,6 +262,10 @@ void FIDSTableModel::updateBlinkStatus(Flight* flight)
 
 void FIDSTableModel::blinkTick()
 {
+	if (FlightSimulator::getInstance().isFrozen()) {
+		return;
+	}
+
 	uint64_t nowTc = GetTickcount();
 
 	QList<Flight*> endedBlinks;

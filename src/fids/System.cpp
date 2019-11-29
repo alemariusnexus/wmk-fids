@@ -1,6 +1,7 @@
 #include "System.h"
 #include <QMessageBox>
 #include <QShortcut>
+#include <QTimer>
 
 
 
@@ -83,7 +84,7 @@ void System::installGlobalShortcuts(QWidget* parent)
 
 				QShortcut* shortcut = new QShortcut(QKeySequence(shortcutStr), parent);
 				connect(shortcut, SIGNAL(activated()), this, SLOT(cueShortcutActivated()));
-				shortcut->setObjectName(QString("EnterMode%1").arg(mode));
+				shortcut->setObjectName(QString("FadeEnterMode%1").arg(mode));
 			}
 		}
 	}
@@ -99,6 +100,45 @@ void System::cueShortcutActivated()
 
 void System::cue(const QString& cue)
 {
+	emit cueTriggered(cue);
+
+	if (cue.startsWith("FadeEnterMode")) {
+		QString mode = cue.right(cue.length() - strlen("FadeEnterMode"));
+
+		const rapidjson::Value& jmode = requireObjectOption(CString("/modes/").append(mode));
+
+		int delay = -1;
+
+		if (jmode.HasMember("enterDelay")) {
+			delay = jmode["enterDelay"].GetInt();
+		}
+
+		QString enterCue = QString("EnterMode%1").arg(mode);
+
+		if (delay >= 0) {
+			cueDelayed(enterCue, delay);
+		} else {
+			emit cueTriggered(enterCue);
+		}
+
+		return;
+	}
+}
+
+
+void System::cueDelayed(const QString& cue, uint64_t delay)
+{
+	delayedCue = cue;
+	QTimer::singleShot(delay, this, [this, cue]() { delayedCueTriggered(cue); });
+}
+
+
+void System::delayedCueTriggered(const QString& cue)
+{
+	if (delayedCue.isNull()) {
+		return;
+	}
+
 	emit cueTriggered(cue);
 }
 
