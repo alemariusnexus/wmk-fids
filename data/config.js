@@ -35,11 +35,11 @@
         },
         "Normal1" : {
             "weather" : "cloudynight",
-            "simulationTime" : "+00:15",
+            //"simulationTime" : "+00:15",
             "description" : "Normal mode for after \"Reise ohne Ende\"",
-            "enterDelay" : 1200,
+            "enterDelay" : 2200,
             "shortcut" : "2",
-            "fadeTime" : 3000,
+            "fadeTime" : 5000,
             "fadeMidTime" : 1000
         },
         "Cancelled" : {
@@ -48,23 +48,23 @@
         },
         "Normal2" : {
             "description" : "Normal mode for after \"A Million Dreams\"",
-            "simulationTime" : "+00:20",
-            "enterDelay" : 1200,
+            //"simulationTime" : "+00:20",
+            "enterDelay" : 2200,
             "shortcut" : "4",
-            "fadeTime" : 3000,
+            "fadeTime" : 5000,
             "fadeMidTime" : 1000
         },
         "Finish" : {
             "description" : "Screen with finish message",
-            "enterDelay" : 1200,
+            "enterDelay" : 2200,
             "shortcut" : "F",
-            "fadeTime" : 3000,
+            "fadeTime" : 5000,
             "fadeMidTime" : 1000
         }
     },
     "startMode" : "Rainy",
-    "pauseFadeTime" : 3000,
-    "pauseFadeMidTime" : 1000,
+    "pauseFadeTime" : 5000,
+    "pauseFadeMidTime" : 2000,
     "pauseShortcut" : "P",
     
     "simulation" : {

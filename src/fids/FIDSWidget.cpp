@@ -178,6 +178,10 @@ void FIDSWidget::cueTriggered(const QString& cue)
 
 		if (mode == "Finish") {
 			ui.contentStackedWidget->setCurrentIndex(2);
+		} else {
+			if (ui.contentStackedWidget->currentIndex() == 2) {
+				ui.contentStackedWidget->setCurrentIndex(0);
+			}
 		}
 	} else if (cue == "FadeTogglePause") {
 		int fadeTime = sys.getIntOption("/pauseFadeTime", 3000);
