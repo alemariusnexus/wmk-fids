@@ -53,6 +53,13 @@
             "shortcut" : "4",
             "fadeTime" : 3000,
             "fadeMidTime" : 1000
+        },
+        "Finish" : {
+            "description" : "Screen with finish message",
+            "enterDelay" : 1200,
+            "shortcut" : "F",
+            "fadeTime" : 3000,
+            "fadeMidTime" : 1000
         }
     },
     "startMode" : "Rainy",
@@ -108,6 +115,8 @@
     "weatherIconCSS" : "margin-right: 25px;",
     "pauseLabelText" : "PAUSE",
     "pauseLabelCSS" : "font-size: 150pt;",
+    "finishLabelText" : "Vielen Dank!",
+    "finishLabelCSS" : "font-size: 150pt;",
     "headerTitles" : [
         "Planmäßig\nScheduled",
         "Vorauss.\nEstimated",

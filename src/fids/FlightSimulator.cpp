@@ -515,6 +515,8 @@ void FlightSimulator::cueTriggered(const QString& cue)
 
 		if (mode == "Cancelled") {
 			enterMode(ModeCancelled);
+		} else if (mode == "Finish") {
+			enterMode(ModeInvalid);
 		} else {
 			enterMode(ModeNormal);
 		}

@@ -204,6 +204,25 @@
        </item>
       </layout>
      </widget>
+     <widget class="QWidget" name="finishWidget">
+      <layout class="QVBoxLayout" name="verticalLayout_4">
+       <item>
+        <widget class="QLabel" name="finishLabel">
+         <property name="font">
+          <font>
+           <pointsize>120</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>Danke!</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
     </widget>
    </item>
   </layout>

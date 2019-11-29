@@ -111,6 +111,9 @@ void FIDSWidget::init()
 	ui.pauseLabel->setText(sys.requireStringOption("/pauseLabelText"));
 	ui.pauseLabel->setStyleSheet(sys.getStringOption("/pauseLabelCSS", ""));
 
+	ui.finishLabel->setText(sys.requireStringOption("/finishLabelText"));
+	ui.finishLabel->setStyleSheet(sys.getStringOption("/finishLabelCSS", ""));
+
 	autoResizeTable();
 
 	QSettings settings;
@@ -171,6 +174,10 @@ void FIDSWidget::cueTriggered(const QString& cue)
 			CString weather(jmode["weather"].GetString());
 
 			setWeather(weather);
+		}
+
+		if (mode == "Finish") {
+			ui.contentStackedWidget->setCurrentIndex(2);
 		}
 	} else if (cue == "FadeTogglePause") {
 		int fadeTime = sys.getIntOption("/pauseFadeTime", 3000);
