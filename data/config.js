@@ -31,10 +31,10 @@
         "expectedDepartureTimeHysteresis" : 30,
         "departLingerTime" : 180,
         "delayMax" : 7200,
-        "cancelInterval" : 3000,
+        "cancelInterval" : 500,
         "cancelTargetNum" : 15,
-        "cancelNumMin" : 10,
-        "cancelNumMax" : 10,
+        "cancelNumMin" : 15,
+        "cancelNumMax" : 15,
         //"loadCutoffTime" : 300,
         //"loadCutoffTime" : 60,
         "loadCutoffTime" : 600,
@@ -59,34 +59,34 @@
     "remarkBoardingColor" : "#00ff00",
     "remarkGateClosingColor" : "#ff6000",
     "remarkDepartedColor" : "#ffffff",
-    "remarkCancelledColor" : "#ff0000",
+    "remarkCancelledColor" : "#ff4444",
     "globalCSS" : "background-color: #010d35; color: #ffffff; font-family: \"Monospace\";",
     "titleText" : "ABFLUG / DEPARTURES",
     "titleCSS" : "",
     "titleLabelCSS" : "margin-left: 25px; font-size: 44pt;",
     "titleTimeCSS" : "font-size: 60pt; font-weight: bold;",
     "titleIconScale" : 128,
-    "weatherIconCSS" : "margin-right: 100px;",
+    "weatherIconCSS" : "margin-right: 25px;",
     "headerTitles" : [
         "Planmäßig\nScheduled",
-        "Voraussichtlich\nEstimated",
+        "Vorauss.\nEstimated",
         "Nach\nTo",
         "Flug\nFlight",
         "Gate",
         "Anmerkungen\nRemarks"
     ],
     "headerHeight" : 80,
-    "tableHeaderCSS" : "QHeaderView::section { border: 0px solid black; background-color: #00fffc; font-size: 18pt; padding-left: 5px; }",
+    "tableHeaderCSS" : "QHeaderView::section { border: 0px solid black; background-color: #00fffc; font-size: 18pt; padding-left: 5px; color: #000000; }",
     "tableCSS" : "",
     "tablePaddingLeft" : 10,
     "tablePaddingRight" : 40,
     "rowSchemes" : [
-        { "backgroundColor" : "#010d35", "textColor" : "#ffffff", "font" : { "size" : 32 } },
-        { "backgroundColor" : "#0072ef", "textColor" : "#ffffff", "font" : { "size" : 32 } }
+        { "backgroundColor" : "#010d35", "textColor" : "#ffffff", "font" : { "size" : 30 } },
+        { "backgroundColor" : "#0072ef", "textColor" : "#ffffff", "font" : { "size" : 30 } }
     ],
     "columnSizes" : [
         //  SHEDTIME    EXPTIME     DEST        FLIGHTNO    GATE        REMARKS
-            1,          1,          2,          1,          1,          2
+            1,          1,          2,          1.5,          1,          2
     ],
     
     

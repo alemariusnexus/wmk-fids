@@ -487,13 +487,21 @@ void FlightSimulator::cue(const QString& cue)
 	} else if (cue == "EnterModePart1") {
 		enterMode(ModeInvalid);
 		enterModeDelayed(ModeNormal, 2000);
-		sys.setSimulatedTime(QTime::fromString(sys.requireStringOption("/simulationTimeStart")));
+		if (sys.hasOption("/simulationTimeStart")) {
+			sys.setSimulatedTime(QTime::fromString(sys.requireStringOption("/simulationTimeStart")));
+		} else {
+			sys.setSimulatedTime(QTime::currentTime());
+		}
 	} else if (cue == "EnterModeCancelled") {
 		enterMode(ModeCancelled);
 	} else if (cue == "EnterModePart2") {
 		enterMode(ModeInvalid);
 		enterModeDelayed(ModeNormal, 2000);
-		sys.setSimulatedTime(QTime::fromString(sys.requireStringOption("/simulationTimePart2")));
+		if (sys.hasOption("/simulationTimePart2")) {
+			sys.setSimulatedTime(QTime::fromString(sys.requireStringOption("/simulationTimePart2")));
+		} else {
+			sys.setSimulatedTime(QTime::currentTime());
+		}
 	}
 }
 
