@@ -108,6 +108,9 @@ void FIDSWidget::init()
 	ui.timeLabel->setStyleSheet(sys.getStringOption("/titleTimeCSS", ""));
 	//ui.timeLabel->setStyleSheet(sys.getStringOption("/titleCSS", ""));
 
+	ui.pauseLabel->setText(sys.requireStringOption("/pauseLabelText"));
+	ui.pauseLabel->setStyleSheet(sys.getStringOption("/pauseLabelCSS", ""));
+
 	autoResizeTable();
 
 	QSettings settings;
@@ -121,8 +124,8 @@ void FIDSWidget::init()
 
 	fadeEffect = new QGraphicsOpacityEffect(ui.contentWidget);
 	fadeEffect->setOpacity(1.0f);
-	ui.contentWidget->setGraphicsEffect(fadeEffect);
-	ui.contentWidget->setAutoFillBackground(true);
+	ui.contentStackedWidget->setGraphicsEffect(fadeEffect);
+	ui.contentStackedWidget->setAutoFillBackground(true);
 
 
 	sys.installGlobalShortcuts(this);
@@ -159,8 +162,7 @@ void FIDSWidget::cueTriggered(const QString& cue)
 			int fadeMidTime = jmode.HasMember("fadeMidTime") ? jmode["fadeMidTime"].GetInt() : 0;
 			cueFade(fadeTime, FadeTypeInOut, fadeMidTime);
 		}
-	}
-	if (cue.startsWith("EnterMode")) {
+	} else if (cue.startsWith("EnterMode")) {
 		QString mode = cue.right(cue.length() - strlen("EnterMode"));
 
 		const rapidjson::Value& jmode = sys.requireObjectOption(CString("/modes/").append(mode));
@@ -169,6 +171,19 @@ void FIDSWidget::cueTriggered(const QString& cue)
 			CString weather(jmode["weather"].GetString());
 
 			setWeather(weather);
+		}
+	} else if (cue == "FadeTogglePause") {
+		int fadeTime = sys.getIntOption("/pauseFadeTime", 3000);
+		int midTime = sys.getInt64Option("/pauseFadeMidTime", 1000);
+
+		cueFade(fadeTime, FadeTypeInOut, midTime);
+
+		sys.cueDelayed("TogglePause", (fadeTime-midTime)/2 + midTime/2);
+	} else if (cue == "TogglePause") {
+		if (ui.contentStackedWidget->currentIndex() == 0) {
+			ui.contentStackedWidget->setCurrentIndex(1);
+		} else {
+			ui.contentStackedWidget->setCurrentIndex(0);
 		}
 	}
 

@@ -88,6 +88,17 @@ void System::installGlobalShortcuts(QWidget* parent)
 			}
 		}
 	}
+
+
+	// Toggle pause
+
+	if (hasOption("/pauseShortcut")) {
+		QString shortcutStr(getStringOption("/pauseShortcut"));
+
+		QShortcut* shortcut = new QShortcut(QKeySequence(shortcutStr), parent);
+		connect(shortcut, SIGNAL(activated()), this, SLOT(cueShortcutActivated()));
+		shortcut->setObjectName(QString("FadeTogglePause"));
+	}
 }
 
 

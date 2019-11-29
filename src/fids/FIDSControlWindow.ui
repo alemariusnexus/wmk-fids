@@ -14,7 +14,7 @@
    <string>FIDSControlWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QVBoxLayout" name="verticalLayout" stretch="0,1,1">
+   <layout class="QVBoxLayout" name="verticalLayout" stretch="0,1,1,0">
     <item>
      <widget class="QLabel" name="curModeLabel">
       <property name="font">
@@ -41,6 +41,18 @@
        <string>Time Presets</string>
       </property>
       <layout class="QHBoxLayout" name="horizontalLayout_2"/>
+     </widget>
+    </item>
+    <item>
+     <widget class="QPushButton" name="cueButtonFadeTogglePause">
+      <property name="font">
+       <font>
+        <pointsize>36</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>Toggle Pause</string>
+      </property>
      </widget>
     </item>
    </layout>

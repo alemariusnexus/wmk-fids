@@ -87,7 +87,7 @@ void FIDSControlWindow::init()
 			QString buttonText = QString("Mode \"%1\"").arg(mode);
 
 			if (jmode.HasMember("shortcut")) {
-				buttonText.append(QString("\n[shortcut: \"%1\"]").arg(jmode["shortcut"].GetString()));
+				buttonText.append(QString("   [%1]").arg(jmode["shortcut"].GetString()));
 			}
 
 			if (jmode.HasMember("description")) {
@@ -111,6 +111,11 @@ void FIDSControlWindow::init()
 
 			first = false;
 		}
+	}
+
+
+	if (sys.hasOption("/pauseShortcut")) {
+		ui.cueButtonFadeTogglePause->setText(ui.cueButtonFadeTogglePause->text() + QString("   [%1]").arg(sys.getStringOption("/pauseShortcut")));
 	}
 
 

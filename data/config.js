@@ -28,7 +28,7 @@
             "weather" : "rainy",
             "simulationTime" : null,
             "description" : "Start mode. Rainy weather for \"Reise ohne Ende\"",
-            "enterDelay" : 1000,
+            "enterDelay" : 1200,
             "shortcut" : "1",
             "fadeTime" : 3000,
             "fadeMidTime" : 1000
@@ -37,7 +37,7 @@
             "weather" : "cloudynight",
             "simulationTime" : "+00:15",
             "description" : "Normal mode for after \"Reise ohne Ende\"",
-            "enterDelay" : 1000,
+            "enterDelay" : 1200,
             "shortcut" : "2",
             "fadeTime" : 3000,
             "fadeMidTime" : 1000
@@ -49,13 +49,16 @@
         "Normal2" : {
             "description" : "Normal mode for after \"A Million Dreams\"",
             "simulationTime" : "+00:20",
-            "enterDelay" : 1000,
+            "enterDelay" : 1200,
             "shortcut" : "4",
             "fadeTime" : 3000,
             "fadeMidTime" : 1000
         }
     },
     "startMode" : "Rainy",
+    "pauseFadeTime" : 3000,
+    "pauseFadeMidTime" : 1000,
+    "pauseShortcut" : "P",
     
     "simulation" : {
         "beginBoardingTimeDeviation" : 30,
@@ -103,6 +106,8 @@
     "titleTimeCSS" : "font-size: 60pt; font-weight: bold;",
     "titleIconScale" : 128,
     "weatherIconCSS" : "margin-right: 25px;",
+    "pauseLabelText" : "PAUSE",
+    "pauseLabelCSS" : "font-size: 150pt;",
     "headerTitles" : [
         "Planmäßig\nScheduled",
         "Vorauss.\nEstimated",
