@@ -32,6 +32,11 @@ Look at the data/config.js file. You can configure lots of things about the appe
 It uses the flight plan from config.js and then runs a simple simulation that uses fixed time intervals with some randomness to change between the flight states (BOARDING, GATE CLOSING, DEPARTED, CANCELLED). It also sprinkles in some random delays here and there. It's not very fancy, but it makes it look like flights are actually happening.
 
 
+## Known Limitations
+
+* Do not ask me what happens when the clock passes midnight. You don't want to know.
+
+
 ## Attributions
 
 The icons in data/icons are from [amCharts](https://www.amcharts.com/free-animated-svg-weather-icons/), released under the Creative Commons Attribution 4.0 International Public License.
